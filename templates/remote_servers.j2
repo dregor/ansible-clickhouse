@@ -11,6 +11,10 @@
           <replica>
             <host>{{ replica['host'] }}</host>
             <port>{{ replica['port'] | default(9000) }}</port>
+            {% if clickhouse_replication_user: %}
+              <user>{{ clickhouse_replication_user }}</user>
+              <password>{{ clickhouse_replication_password }}</password>
+            {% endif %}
           </replica>
 {% endfor %}
         </shard>
