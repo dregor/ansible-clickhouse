@@ -1,5 +1,3 @@
-#grep -q sse4_2 /proc/cpuinfo && echo "SSE 4.2 supported" || echo "SSE 4.2 not supported"
-
 - name: Requirements check | Checking sse4_2 support
   command: grep -q sse4_2 /proc/cpuinfo
   changed_when: False
@@ -9,24 +7,17 @@
     msg: "Your distribution {{ ansible_distribution }}_{{ ansible_distribution_release }} not supported by this role,sorry."
   when: clickhouse_supported|bool != True
 
-- name: Requirements check | Check if Clickhouse is installed
-  shell: dpkg-query -f '${Package} ' -W |grep -q "{{ clickhouse_package| join(" ")}}"
-  register: clickhouse_rt_isinstalled
-  ignore_errors: yes
-  when: ansible_pkg_mgr == 'apt' and clickhouse_setup == 'package'
-  changed_when: False
-  check_mode: no
+- include: "{{ item }}"
+  with_first_found:
+    - "precheck_{{ ansible_pkg_mgr }}.yml"
+    - "empty.yml"
+  when: clickhouse_setup == 'package'
+  tags: [always]
+
+- name: Debug apt installed
+  debug: var=clickhouse_rt_is_installed
 
 - set_fact:
-    ch_installed: '{{ clickhouse_rt_isinstalled.rc }}'
-  when: ansible_pkg_mgr == 'apt' and clickhouse_setup == 'package'
-
-- name: Check if rpm is already installed
-  yum:
-    list: "{{ clickhouse_package[0] }}"
-  when: ansible_pkg_mgr == 'yum' and clickhouse_setup == 'package'
-  register: yum_list
-
+    clickhouse_rt_versions: "{{ clickhouse_rt_versions_tmp['results'] | map(attribute='stdout') | list }}"
 - set_fact:
-    ch_installed: '{{ yum_list.results | selectattr("yumstate", "match", "installed") | list | length == 0 }}'
-  when: ansible_pkg_mgr == 'yum' and clickhouse_setup == 'package'
+    clickhouse_is_required_version: "{{ clickhouse_version == '*' or (clickhouse_rt_versions | unique | count == 1 and clickhouse_rt_versions[0] == clickhouse_version) }}"

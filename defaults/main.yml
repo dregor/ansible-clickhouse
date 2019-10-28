@@ -1,6 +1,8 @@
 ---
 # defaults file for clickhouse
 
+clickhouse_version: "*"
+
 #Flag for using with requirements check
 clickhouse_supported: no
 #Type of installation (package,source)
@@ -30,6 +32,9 @@ clickhouse_listen_host: "{{ clickhouse_listen_host_default + clickhouse_listen_h
 clickhouse_http_port: 8123
 
 clickhouse_tcp_port: 9000
+
+clickhouse_https_port: 8443
+clickhouse_tcp_secure_port: 9440
 
 clickhouse_interserver_http: 9009
 
@@ -77,4 +82,16 @@ clickhouse_config:
 
 clickhouse_dicts: []
 
-clickhouse_path_user_files: /var/lib/clickhouse/user_files/
+clickhouse_path_base: "/var/lib"
+
+clickhouse_path_user_files: "{{ clickhouse_path_base }}/clickhouse/user_files/"
+
+clickhouse_mlock_status: false
+
+max_partitions_per_insert_block: 100
+
+clickhouse_kafka_config: []
+
+clickhouse_kafka_topics_config: []
+
+clickhouse_merge_tree_config: []

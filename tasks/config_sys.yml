@@ -1,4 +1,4 @@
-- name: Check clickhouse config,data and logs
+- name: Check clickhouse config, data and logs
   file:
     dest: "{{ item }}"
     owner: clickhouse
@@ -9,7 +9,6 @@
     - "{{ clickhouse_path_configdir }}"
     - "{{ clickhouse_path_tmp }}"
     - "{{ clickhouse_path_data }}"
-    - "{{ clickhouse_path_configdir }}/conf.d"
   notify: restart-ch
   become: true
 
@@ -31,6 +30,14 @@
   notify: restart-ch
   become: true
 
+- name: Config | Create conf folder
+  file:
+    path: "{{ clickhouse_path_configdir }}/conf.d"
+    state: directory
+    owner: clickhouse
+    group: clickhouse
+  become: true
+
 - name: Config | Generate remote_servers config
   template:
     src: remote_servers.j2
@@ -39,7 +46,7 @@
     group: clickhouse
   notify: restart-ch
   become: true
-  when: clickhouse_clusters is defined 
+  when: clickhouse_clusters is defined
 
 - name: Config | Generate macros config
   template:

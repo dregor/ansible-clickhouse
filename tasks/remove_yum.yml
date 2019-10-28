@@ -1,20 +1,28 @@
 #Main installation actions
 #https://clickhouse.yandex/docs/en/getting_started/index.html#installation
 
-- name: Uninstall by YUM | Package uninstallation
+- name: Uninstall by YUM | Ensure clickhouse package uninstalled
   yum:
-    name: "{{ item }}"
+    name: "{{ item }}-{{ clickhouse_version }}"
     state: absent
+    autoremove: yes
   with_items: "{{ clickhouse_package }}"
   become: true
 
-- name: Uninstall by YUM | Remove repository
+- name: Uninstall by YUM | Ensure clickhouse repo uninstalled
   yum_repository:
-    name: altinity_clickhouse
+    name: clickhouse
+    file: clickhouse
     state: absent
   become: true
 
-- name: Uninstall by YUM | Remove clickhouse config,data and logs
+- name: Uninstall by YUM | Ensure clickhouse key uninstalled
+  rpm_key:
+    key: "{{ clickhouse_repo_key }}"
+    state: absent
+  become: true
+
+- name: Remove clickhouse config,data and logs
   file:
     dest: "{{ item }}"
     state: absent

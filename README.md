@@ -6,6 +6,10 @@ Any issues and pr are welcome.
 
 Role Variables
 --------------
+F: You can specify a particular version (or `*` for the latest). Please note that downgrade isn't supported.
+```yaml
+clickhouse_version: "19.11.3.11"
+```
 
 F: You can manage listen ports
 ```yaml
@@ -138,12 +142,35 @@ F: Flag for remove clickhouse from host(disabled by default)
 clickhouse_remove: no
 ```
 
+F: You can manage [Kafka configuration](https://clickhouse.yandex/docs/en/operations/table_engines/kafka/#configuration)
+```yaml
+# global configuration
+clickhouse_kafka_config:
+  auto_offset_reset: smallest
+  debug: cgrp
+# topic-level configuration
+clickhouse_kafka_topics_config:
+  topic1:
+    retry_backoff_ms: 250
+    fetch_min_bytes: 100000
+  topic2:
+    retry_backoff_ms: 300
+    fetch_min_bytes: 120000
+```
+
+F: You can manage Merge Tree config. For the list of available parameters, see [MergeTreeSettings.h](https://github.com/yandex/ClickHouse/blob/master/dbms/src/Storages/MergeTree/MergeTreeSettings.h).
+```yaml
+clickhouse_merge_tree_config:
+  max_suspicious_broken_parts: 5
+  parts_to_throw_insert: 600
+```
+
 Example Playbook
 ----------------
 
 Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 ```yaml
-  - hosts: localhost
+  - hosts: clickhouse_cluster
     remote_user: root
     vars:
       clickhouse_users_custom:
@@ -201,8 +228,24 @@ Including an example of how to use your role (for instance, with variables passe
          - { name: testu1 }
          - { name: testu2, state:present }
          - { name: testu3, state:absent }
+      clickhouse_shards:
+        your_shard_name:
+          - { host: "db_host_1", port: 9000 }
+          - { host: "db_host_2", port: 9000 }
+          - { host: "db_host_3", port: 9000 }
+      clickhouse_zookeeper_nodes:
+        - { host: "zoo_host_1", port: 2181 }
+        - { host: "zoo_host_2", port: 2181 }
+        - { host: "zoo_host_3", port: 2181 }
     roles:
       - ansible-clickhouse
+```
+To generate macros: in file host_vars\db_host_1.yml
+```yaml
+clickhouse_macros:
+  layer: 01
+  shard: "your_shard_name"
+  replica: "db_host_1"
 ```
 
 F: You can call separately stages(from playbook, external role etc.):
