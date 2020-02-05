@@ -38,7 +38,7 @@
         {% elif user.password is defined and user.password_sha256_hex is defined %}
         <password_sha256_hex>{{ user.password_sha256_hex }}</password_sha256_hex>
         {% endif %}
-        <networks incl="networks" replace="replace">
+        <networks>
         {% for net in user.networks %}
         <ip>{{ net }}</ip>
         {% endfor %}
@@ -67,7 +67,7 @@
         {% elif user.password is defined and user.password_sha256_hex is defined %}
         <password_sha256_hex>{{ user.password_sha256_hex }}</password_sha256_hex>
         {% endif %}
-        <networks incl="networks" replace="replace">
+        <networks>
         {% for net in user.networks %}
         <ip>{{ net }}</ip>
         {% endfor %}
