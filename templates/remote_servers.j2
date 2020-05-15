@@ -2,7 +2,7 @@
 <!-- {{ ansible_managed }} -->
 <yandex>
   <remote_servers>
-{% for cluster_name, cluster in clickhouse_clusters.iteritems() %}
+{% for cluster_name, cluster in clickhouse_clusters.items() %}
     <{{ cluster_name }}>
 {% for shard in cluster %}
         <shard>
