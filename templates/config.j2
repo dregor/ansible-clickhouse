@@ -1,6 +1,6 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 <?xml version="1.0"?>
-<!-- {{ ansible_managed }} -->
+{{ ansible_managed | comment('xml') }} 
 <yandex>
     <logger>
         <!-- Possible levels: https://github.com/pocoproject/poco/blob/develop/Foundation/include/Poco/Logger.h#L105 -->
@@ -178,6 +178,9 @@
     <!-- Reloading interval for embedded dictionaries, in seconds. Default: 3600. -->
     <builtin_dictionaries_reload_interval>{{ clickhouse_config.builtin_dictionaries_reload_interval }}</builtin_dictionaries_reload_interval>
 
+    <!-- If true, dictionaries are created lazily on first use. Otherwise they are initialised on server startup. Default: true -->
+    <!-- See also: https://clickhouse.tech/docs/en/operations/server-configuration-parameters/settings/#server_configuration_parameters-dictionaries_lazy_load -->
+    <dictionaries_lazy_load>{{ clickhouse_config.dictionaries_lazy_load }}</dictionaries_lazy_load>
 
     <!-- Maximum session timeout, in seconds. Default: 3600. -->
     <max_session_timeout>{{ clickhouse_config.max_session_timeout }}</max_session_timeout>
@@ -219,6 +222,33 @@
         <asynchronous_metrics>false</asynchronous_metrics>
     </graphite>
     -->
+{% if clickhouse_graphite is defined %}
+{% for graphite in clickhouse_graphite %}
+    <graphite>
+        <host>{{ graphite.host }}</host>
+        <port>{{ graphite.port }}</port>
+        <timeout>{{ graphite.timeout }}</timeout>
+        <interval>{{ graphite.interval }}</interval>
+        <root_path>{{ graphite.root_path }}</root_path>
+        {% if graphite.hostname_in_path is defined %}
+        <hostname_in_path>{{ graphite.hostname_in_path }}</hostname_in_path>
+        {% endif %}
+
+        {% if graphite.metrics is defined %}
+        <metrics>{{ graphite.metrics }}</metrics>
+        {% endif %}
+        {% if graphite.events is defined %}
+        <events>{{ graphite.events }}</events>
+        {% endif %}
+        {% if graphite.events_cumulative is defined %}
+        <events_cumulative>{{ graphite.events_cumulative }}</events_cumulative>
+        {% endif %}
+        {% if graphite.asynchronous_metrics is defined %}
+        <asynchronous_metrics>{{ graphite.asynchronous_metrics }}</asynchronous_metrics>
+        {% endif %}
+    </graphite>
+{% endfor %}
+{% endif %}
 
 
     <!-- Query log. Used only for queries with setting log_queries = 1. -->
@@ -355,6 +385,57 @@
         </default>
     </graphite_rollup_example>
 
+{% if clickhouse_graphite_rollup is defined %}
+    <graphite_rollup>
+    {% for tag in clickhouse_graphite_rollup %}
+        <{{ tag }}>
+        {% if clickhouse_graphite_rollup[tag].function is defined %}
+            <function>{{ clickhouse_graphite_rollup[tag].function }}</function>
+        {% endif %}
+        {% if clickhouse_graphite_rollup[tag].regexp is defined %}
+            <regexp>{{ clickhouse_graphite_rollup[tag].regexp }}</regexp>
+        {% endif %}
+        {% for retention in clickhouse_graphite_rollup[tag].retention %}
+            <retention>
+                <age>{{ retention.age }}</age>
+                <precision>{{ retention.precision }}</precision>
+            </retention>
+        {% endfor %}
+        </{{ tag }}>
+    {% endfor %}
+    </graphite_rollup>
+{% endif %}
+
+    <!-- Exposing metrics data for scraping from Prometheus. -->
+    <!--
+        endpoint – HTTP endpoint for scraping metrics by prometheus server. Start from ‘/’.
+        port – Port for endpoint.
+        metrics – Flag that sets to expose metrics from the system.metrics table.
+        events – Flag that sets to expose metrics from the system.events table.
+        asynchronous_metrics – Flag that sets to expose current metrics values from the system.asynchronous_metrics table.
+    -->
+    <!--
+    <prometheus>
+        <endpoint>/metrics</endpoint>
+        <port>8001</port>
+        <metrics>true</metrics>
+        <events>true</events>
+        <asynchronous_metrics>true</asynchronous_metrics>
+    </prometheus>
+    -->
+
+{% if clickhouse_prometheus is defined %}
+{% for prometheus in clickhouse_prometheus %}
+    <prometheus>
+        <endpoint>{{ prometheus.endpoint }}</endpoint>
+        <port>{{ prometheus.port }}</port>
+        <metrics>{{ prometheus.metrics }}</metrics>
+        <events>{{ prometheus.events }}</events>
+        <asynchronous_metrics>{{ prometheus.asynchronous_metrics }}</asynchronous_metrics>
+    </prometheus>
+{% endfor %}
+{% endif %}
+
     <!-- Directory in <clickhouse-path> containing schema files for various input formats.
          The directory will be created if it doesn't exist.
       -->
@@ -377,7 +458,6 @@
         <{{ item }}>{{ clickhouse_kafka_topics_config[kafka_topic][item] }}</{{ item }}>
     {% endfor %}
     </kafka_{{ kafka_topic }}>
-
 {% endfor %}
 
 </yandex>
