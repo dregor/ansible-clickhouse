@@ -180,7 +180,7 @@
 
     <!-- If true, dictionaries are created lazily on first use. Otherwise they are initialised on server startup. Default: true -->
     <!-- See also: https://clickhouse.tech/docs/en/operations/server-configuration-parameters/settings/#server_configuration_parameters-dictionaries_lazy_load -->
-    <dictionaries_lazy_load>{{ clickhouse_config.dictionaries_lazy_load }}</dictionaries_lazy_load>
+    <dictionaries_lazy_load>{{ clickhouse_config.dictionaries_lazy_load |default(true)}}</dictionaries_lazy_load>
 
     <!-- Maximum session timeout, in seconds. Default: 3600. -->
     <max_session_timeout>{{ clickhouse_config.max_session_timeout }}</max_session_timeout>
@@ -414,15 +414,15 @@
         events – Flag that sets to expose metrics from the system.events table.
         asynchronous_metrics – Flag that sets to expose current metrics values from the system.asynchronous_metrics table.
     -->
-    <!--
+    {% if clickhouse_prometheus_port > 0 %}
     <prometheus>
         <endpoint>/metrics</endpoint>
-        <port>8001</port>
+        <port>{{ clickhouse_prometheus_port }}</port>
         <metrics>true</metrics>
         <events>true</events>
         <asynchronous_metrics>true</asynchronous_metrics>
     </prometheus>
-    -->
+    {% endif %}
 
 {% if clickhouse_prometheus is defined %}
 {% for prometheus in clickhouse_prometheus %}
