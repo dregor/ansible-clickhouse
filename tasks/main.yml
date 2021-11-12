@@ -33,7 +33,7 @@
     file: configure/sys.yml
     apply:
       tags: [config, config_sys]
-  tags: [config, config_sys]
+  tags: [config, config_sys, clickhouse_users]
   when: not clickhouse_remove|bool
 
 - name: "Notify Handlers Now"

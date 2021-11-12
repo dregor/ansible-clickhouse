@@ -30,6 +30,7 @@
     group: "{{ clickhouse_group | default('clickhouse') }}"
     mode: "ug=rw,o-rwx"
   become: true
+  tags: clickhouse_users
 
 - name: Config | Create conf folder
   file:

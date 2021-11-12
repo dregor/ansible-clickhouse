@@ -54,6 +54,7 @@
         {% endif %}
     </{{ user.name }}>
     {% endfor %}
+
     <!-- Custom users. -->
     {% for user in clickhouse_users_custom %}
     {% if user.comment is defined %}
@@ -78,6 +79,9 @@
             <database>{{ db }}</database>
         {% endfor %}
         </allow_databases>
+        {% endif %}
+        {% if user.access_management is defined %}
+        <access_management>{{user.access_management}}</access_management>
         {% endif %}
     </{{ user.name }}>
     {% endfor %}
