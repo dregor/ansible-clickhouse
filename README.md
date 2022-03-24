@@ -21,11 +21,23 @@ clickhouse_http_port: 8123
 clickhouse_tcp_port: 9000
 clickhouse_interserver_http: 9009
 ```
-F: you can manage listen ip:
+F: You can add listen ips on top of defaults:
 ```yaml
 clickhouse_listen_host_custom:
   - "192.168.0.1"
 ```
+
+F: you can manage ttl query_log:
+```yaml
+clickhouse_query_log_ttl: 'event_date + INTERVAL 7  DELETE'
+```
+
+F: Or you can specify ips directly e.g. to listen on all ipv4 and ipv6 addresses:
+```yaml
+clickhouse_listen_host:
+  - "::"
+```
+
 F: You can create custom profiles
 ```yaml
 clickhouse_profiles_custom:
@@ -85,6 +97,13 @@ clickhouse_users_custom:
           quota: "default",
           dbs: [ testu1,testu2,testu3 ] ,
           comment: "classic user with multi dbs and multi-custom network allow password"}
+      - { name: "testuser4",
+          ldap_server: "example_ldap_server",
+          networks: { 192.168.0.0/24, 10.0.0.0/8 },
+          profile: "default",
+          quota: "default",
+          dbs: [ testu1,testu2,testu3 ] ,
+          comment: "external authentication using ldap_server definition"}
 ```
 
 F: You can manage own quotas:
@@ -167,6 +186,34 @@ clickhouse_kafka_topics_config:
     fetch_min_bytes: 120000
 ```
 
+F: You can manage [LDAP Server configuration](https://clickhouse.com/docs/en/operations/external-authenticators/ldap/#ldap-server-definition)
+```yaml
+clickhouse_ldap_servers:
+  # Debug with ldapwhoami -H '<host>' -D '<bind_dn>' -w <password>
+  example_ldap_server:
+    host: "ldaps.example.com"
+    port: "636"
+    bind_dn: "EXAMPLENET\\{user_name}"
+    verification_cooldown: "300"
+    enable_tls: "yes"
+    tls_require_cert: "demand"
+```
+
+F: You can manage [LDAP External User Directory](https://clickhouse.com/docs/en/operations/external-authenticators/ldap/#ldap-external-user-directory)
+```yaml
+# Helpful guide on https://altinity.com/blog/integrating-clickhouse-with-ldap-part-two
+clickhouse_ldap_user_directories:
+  - server: "example_ldap_server"
+    roles:
+      - "ldap_user"
+    role_mapping:
+      base_dn: "ou=groups,dc=example,dc=com"
+      attribute: "CN"
+      scope: "subtree"
+      search_filter: "(&amp;(objectClass=group)(member={user_dn}))"
+      prefix: "clickhouse_
+```
+
 F: You can manage Merge Tree config. For the list of available parameters, see [MergeTreeSettings.h](https://github.com/yandex/ClickHouse/blob/master/dbms/src/Storages/MergeTree/MergeTreeSettings.h).
 ```yaml
 clickhouse_merge_tree_config:
@@ -204,6 +251,7 @@ Including an example of how to use your role (for instance, with variables passe
               quota: "default",
               dbs: [ testu1,testu2,testu3 ] ,
               comment: "classic user with multi dbs and multi-custom network allow password"}
+      clickhouse_query_log_ttl: 'event_date + INTERVAL 7  DELETE'
       clickhouse_dicts:
           test1:
             name: test_dict
@@ -237,15 +285,18 @@ Including an example of how to use your role (for instance, with variables passe
          - { name: testu1 }
          - { name: testu2, state:present }
          - { name: testu3, state:absent }
-      clickhouse_shards:
-        your_shard_name:
+    clickhouse_clusters:
+      your_cluster_name:
+       shard_1:
           - { host: "db_host_1", port: 9000 }
           - { host: "db_host_2", port: 9000 }
+       shard_2:
           - { host: "db_host_3", port: 9000 }
-      clickhouse_zookeeper_nodes:
-        - { host: "zoo_host_1", port: 2181 }
-        - { host: "zoo_host_2", port: 2181 }
-        - { host: "zoo_host_3", port: 2181 }
+          - { host: "db_host_4", port: 9000 }        
+    clickhouse_zookeeper_nodes:
+      - { host: "zoo_host_1", port: 2181 }
+      - { host: "zoo_host_2", port: 2181 }
+      - { host: "zoo_host_3", port: 2181 }
     roles:
       - ansible-clickhouse
 ```
