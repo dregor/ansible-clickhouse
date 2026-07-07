@@ -66,7 +66,7 @@ clickhouse_dbs_custom: []
 clickhouse_dbs: "{{ clickhouse_dbs_default + clickhouse_dbs_custom }}"
 
 clickhouse_logger:
-  level: trace
+  level: warning
   log: "{{ clickhouse_path_logdir }}/clickhouse-server.log"
   errorlog: "{{ clickhouse_path_logdir }}/clickhouse-server.err.log"
   size: 1000M
