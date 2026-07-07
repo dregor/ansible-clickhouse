@@ -1,5 +1,7 @@
 ---
 # tasks file for clickhouse
+# Переменные из vars/*.yml (clickhouse_repo*, clickhouse_supported) используются
+# только в install/*.yml и remove/*.yml — для config_* они не нужны.
 - name: 'Include OS Family Specific Variables'
   include_vars: "{{ lookup('first_found', params) }}"
   vars:
@@ -9,13 +11,15 @@
         - 'empty.yml'
       paths:
         - 'vars'
-  tags: [always]
+  tags: [install, remove]
 
 - include_tasks: precheck.yml
-  tags: [always]
+  tags: [install, remove]
 
+# clickhouse_service_enable/ensure нужны для service.yml, который используется
+# всеми ветками (install/config*/remove), поэтому тот же набор тегов.
 - include_tasks: params.yml
-  tags: [always]
+  tags: [install, config, config_sys, config_db, config_dict, clickhouse_users, remove]
 
 - include_tasks:
     file: "{{ lookup('first_found', params) }}"
@@ -40,7 +44,7 @@
   meta: flush_handlers
 
 - include_tasks: service.yml
-  tags: [always]
+  tags: [install, config, config_sys, config_db, config_dict, clickhouse_users, remove]
 
 - name: "Wait for Clickhouse Server to Become Ready"
   wait_for:
