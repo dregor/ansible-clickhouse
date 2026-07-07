@@ -35,6 +35,7 @@ clickhouse_https_port: 8443
 clickhouse_tcp_secure_port: 9440
 
 clickhouse_interserver_http: 9009
+clickhouse_interserver_http_host: "{{ clickhouse_macros.host }}"
 
 clickhouse_networks_default:
   - "::/0"
