@@ -30,3 +30,6 @@
   become: true
   tags: [install]
   when: clickhouse_version != 'latest'
+
+- include_tasks: redhat_version_lock.yml
+  tags: [install]

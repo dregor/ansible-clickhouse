@@ -14,6 +14,12 @@ clickhouse_remove: false
 #Flag for full remove(incl db and config), use clickhouse_remove + clickhouse_remove_full
 clickhouse_remove_full: false
 
+#Lock installed clickhouse packages against unrelated yum/dnf/apt upgrades
+#(dnf/yum versionlock on RedHat, apt preferences pin on Debian). true (default) -
+#lock stays/gets applied; false - lock is explicitly removed. See
+#tasks/install/redhat_version_lock.yml for the upgrade procedure.
+clickhouse_version_lock_enabled: true
+
 clickhouse_profiles_default:
  default:
    max_memory_usage: 10000000000

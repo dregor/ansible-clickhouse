@@ -1,0 +1,37 @@
+---
+# Блокировка версии clickhouse-* пакетов через dnf/yum versionlock - без этого
+# случайный dnf/yum update мимо Ansible тихо обновит ClickHouse в обход
+# зафиксированной clickhouse_version (тот же приём, что и в
+# roles/percona8_cluster/tasks/version_lock.yml для percona-server).
+#
+# clickhouse_version_lock_enabled: true (по умолчанию) - лок ставится/остаётся.
+# clickhouse_version_lock_enabled: false - лок СНИМАЕТСЯ явно (не просто "не
+# ставится" - если он уже был, expected toggle-off должен реально его убрать).
+#
+# При плановом апгрейде версии: выставить clickhouse_version_lock_enabled: false,
+# прогнать роль (лок снимется), обновить clickhouse_version, прогнать роль ещё
+# раз с clickhouse_version_lock_enabled: true (залочит уже новую версию).
+
+- name: "Version lock | Ensure versionlock plugin installed"
+  package:
+    name: "{{ 'python3-dnf-plugin-versionlock' if ansible_pkg_mgr == 'dnf' else 'yum-plugin-versionlock' }}"
+    state: present
+  become: true
+  when: clickhouse_version_lock_enabled | bool
+
+- name: "Version lock | Pin installed clickhouse packages"
+  command: "{{ ansible_pkg_mgr }} versionlock add {{ item }}"
+  register: _clickhouse_versionlock_add
+  changed_when: "'Adding versionlock' in _clickhouse_versionlock_add.stdout"
+  loop: "{{ clickhouse_package }}"
+  become: true
+  when: clickhouse_version_lock_enabled | bool
+
+- name: "Version lock | Remove lock when disabled"
+  command: "{{ ansible_pkg_mgr }} versionlock delete {{ item }}"
+  register: _clickhouse_versionlock_delete
+  changed_when: "'Deleting versionlock' in _clickhouse_versionlock_delete.stdout"
+  failed_when: _clickhouse_versionlock_delete.rc not in [0, 1]
+  loop: "{{ clickhouse_package }}"
+  become: true
+  when: not (clickhouse_version_lock_enabled | bool)

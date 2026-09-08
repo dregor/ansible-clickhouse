@@ -42,7 +42,7 @@
   when: clickhouse_version == 'latest'
   tags: [install]
 
-- name: Hold specified version during APT upgrade | Package installation
+- name: "Version lock | Hold specified version during APT upgrade"
   become: true
   copy:
     dest: "/etc/apt/preferences.d/fixed-{{ item }}"
@@ -51,3 +51,12 @@
       Pin: release a=now
       Pin-Priority: 1001
   loop: "{{ clickhouse_package }}"
+  when: clickhouse_version_lock_enabled | bool
+
+- name: "Version lock | Remove hold when disabled"
+  become: true
+  file:
+    path: "/etc/apt/preferences.d/fixed-{{ item }}"
+    state: absent
+  loop: "{{ clickhouse_package }}"
+  when: not (clickhouse_version_lock_enabled | bool)
