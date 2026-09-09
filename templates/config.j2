@@ -184,6 +184,15 @@
       -->
     <macros incl="macros" optional="true" />
 
+    <!-- Путь/имя реплики по умолчанию для ENGINE=Replicated*MergeTree() без явных
+         аргументов - даёт читаемый путь (по имени БД/таблицы) вместо непрозрачного
+         встроенного дефолта ClickHouse /clickhouse/tables/{uuid}/{shard}.
+         Опционально: если не задано - используется встроенный дефолт. -->
+{% if clickhouse_default_replica_path is defined %}
+    <default_replica_path>{{ clickhouse_default_replica_path }}</default_replica_path>
+    <default_replica_name>{{ clickhouse_default_replica_name | default('{replica}') }}</default_replica_name>
+{% endif %}
+
 
     <!-- Reloading interval for embedded dictionaries, in seconds. Default: 3600. -->
     <builtin_dictionaries_reload_interval>{{ clickhouse_config.builtin_dictionaries_reload_interval }}</builtin_dictionaries_reload_interval>
