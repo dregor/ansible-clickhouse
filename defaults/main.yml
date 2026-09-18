@@ -122,6 +122,7 @@ clickhouse_config:
 clickhouse_dicts: []
 
 clickhouse_path_base: "/var/lib"
+clickhouse_path_data_mode: "0700"
 
 clickhouse_path_user_files: "{{ clickhouse_path_base }}/clickhouse/user_files/"
 

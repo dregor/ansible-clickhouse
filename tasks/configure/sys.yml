@@ -1,5 +1,5 @@
 ---
-- name: Check clickhouse config, data and logs
+- name: Check clickhouse config and logs
   file:
     dest: "{{ item }}"
     owner: "{{ clickhouse_user | default('clickhouse') }}"
@@ -10,7 +10,15 @@
     - "{{ clickhouse_path_logdir }}"
     - "{{ clickhouse_path_configdir }}"
     - "{{ clickhouse_path_tmp }}"
-    - "{{ clickhouse_path_data }}"
+  become: true
+
+- name: Check clickhouse data directory
+  file:
+    dest: "{{ clickhouse_path_data }}"
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "{{ clickhouse_path_data_mode }}"
+    state: directory
   become: true
 
 - name: Config | Create config.d folder
