@@ -1,4 +1,32 @@
 ---
+# Откат с yaml-схемы (роль ansible-role-clickhouse): её unit запускает сервер с config.yaml.
+# yaml-конфиги удаляются ДО генерации xml: иначе живой сервер на горячей перечитке
+# смержит config.d/*.xml со своим yaml (шарды задвоятся). Новый конфиг - рестартом.
+- name: Rollback from yaml | Check yaml-scheme systemd unit
+  slurp:
+    src: /etc/systemd/system/clickhouse-server.service
+  register: clickhouse_yaml_unit
+  failed_when: false
+  become: true
+
+- name: Rollback from yaml | Remove yaml configs and unit
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ clickhouse_path_configdir }}/config.yaml"
+    - "{{ clickhouse_path_configdir }}/users.yaml"
+    - /etc/systemd/system/clickhouse-server.service
+  when: "'config.yaml' in (clickhouse_yaml_unit.content | default('') | b64decode)"
+  register: clickhouse_yaml_removed
+  become: true
+
+- name: Rollback from yaml | Systemd daemon reload
+  systemd:
+    daemon_reload: true
+  when: clickhouse_yaml_removed is changed
+  become: true
+
 - name: Check clickhouse config and logs
   file:
     dest: "{{ item }}"
